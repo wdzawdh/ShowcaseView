@@ -1,26 +1,15 @@
-package com.cw.showcasedemo.showcaseview.animation;
+package com.cw.showcaseview.showcaseview.animation;
 
 import android.animation.Animator;
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.graphics.Point;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
-
-import com.cw.showcasedemo.showcaseview.ShowcaseView;
 
 
-public class AnimationFactory implements IAnimationFactory {
+public class AlphaAnimationFactory implements IAnimationFactory {
 
     private static final String ALPHA = "alpha";
     private static final float INVISIBLE = 0f;
     private static final float VISIBLE = 1f;
-
-    private final AccelerateDecelerateInterpolator interpolator;
-
-    public AnimationFactory() {
-        interpolator = new AccelerateDecelerateInterpolator();
-    }
 
     @Override
     public void fadeInView(View target, long duration, final AnimationStartListener listener) {
@@ -68,15 +57,5 @@ public class AnimationFactory implements IAnimationFactory {
             }
         });
         oa.start();
-    }
-
-    @Override
-    public void animateTargetToPoint(ShowcaseView showcaseView, Point point) {
-        AnimatorSet set = new AnimatorSet();
-        ObjectAnimator xAnimator = ObjectAnimator.ofInt(showcaseView, "showcaseX", point.x);
-        ObjectAnimator yAnimator = ObjectAnimator.ofInt(showcaseView, "showcaseY", point.y);
-        set.playTogether(xAnimator, yAnimator);
-        set.setInterpolator(interpolator);
-        set.start();
     }
 }

@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.cw.showcasedemo.MainActivity">
+    tools:context="com.cw.showcaseview.MainActivity">
 
-    <Button
-        android:id="@+id/btn"
+    <TextView
+        android:id="@+id/tv_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:layout_alignParentRight="true"/>
+        android:layout_centerInParent="true"
+        android:text="Hello World!"/>
 
-    <Button
-        android:id="@+id/btn2"
+    <TextView
+        android:id="@+id/tv_text2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello" />
+        android:layout_centerHorizontal="true"
+        android:text="Hello World!"/>
+
 </RelativeLayout>

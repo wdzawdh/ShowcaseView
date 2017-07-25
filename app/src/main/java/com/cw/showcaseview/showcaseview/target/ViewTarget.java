@@ -1,27 +1,18 @@
-package com.cw.showcasedemo.showcaseview.target;
+package com.cw.showcaseview.showcaseview.target;
 
-import android.app.Activity;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.view.View;
 
 
-public class ViewTarget implements Target {
+public class ViewTarget {
 
-    private final View mView;
-    public int mContentTopMargin=0;
-    public int mContentBottomMargin=0;
-    public int mGravity=0;
+    private View mView;
 
     public ViewTarget(View view) {
         mView = view;
     }
 
-    public ViewTarget(int viewId, Activity activity) {
-        mView = activity.findViewById(viewId);
-    }
-
-    @Override
     public Point getPoint() {
         int[] location = new int[2];
         mView.getLocationInWindow(location);
@@ -30,7 +21,6 @@ public class ViewTarget implements Target {
         return new Point(x, y);
     }
 
-    @Override
     public Rect getBounds() {
         int[] location = new int[2];
         mView.getLocationInWindow(location);
