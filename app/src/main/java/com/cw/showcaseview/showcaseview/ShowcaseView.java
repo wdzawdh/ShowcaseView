@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import com.cw.showcaseview.R;
 import com.cw.showcaseview.showcaseview.animation.AlphaAnimationFactory;
 import com.cw.showcaseview.showcaseview.animation.IAnimationFactory;
+import com.cw.showcaseview.showcaseview.queue.ShowcaseQueue;
 import com.cw.showcaseview.showcaseview.shape.CircleShape;
 import com.cw.showcaseview.showcaseview.shape.IShape;
 import com.cw.showcaseview.showcaseview.shape.OvalShape;
@@ -53,6 +54,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
     private Bitmap mBitmap;
     private Paint mPaint;
     private Canvas mCanvas;
+    private ViewGroup mDecorView;
     private AbsoluteLayout mContentView;
     private Map<ViewTarget, IShape> mTargets = new HashMap<>();
     private AlphaAnimationFactory mAnimationFactory = new AlphaAnimationFactory();
@@ -78,6 +80,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         setVisibility(INVISIBLE);
         View view = LayoutInflater.from(getContext()).inflate(R.layout.showcase_content, this, true);
         mContentView = (AbsoluteLayout) view.findViewById(R.id.content_box);
+        mDecorView = (ViewGroup) mActivity.getWindow().getDecorView();
     }
 
     @Override
@@ -226,8 +229,28 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         /**
          * 监听show和dismiss的事件
          */
-        public Builder setListener(ShowcaseListener listener) {
-            showcaseView.setListener(listener);
+        public Builder addShowcaseListener(ShowcaseListener listener) {
+            showcaseView.addShowcaseListener(listener);
+            return this;
+        }
+
+        /**
+         * 添加到展示队列
+         */
+        public Builder addShowcaseQueue() {
+            showcaseView.addShowQueue();
+            String maskColor = showcaseView.mMaskColor;
+            boolean dismissOnTouch = showcaseView.mDismissOnTouch;
+            int targetPadding = showcaseView.mTargetPadding;
+            long showDuration = showcaseView.mShowDuration;
+            long missDuration = showcaseView.mMissDuration;
+            //重建ShowcaseView，保留set系列的属性
+            showcaseView = new ShowcaseView(showcaseView.mActivity);
+            showcaseView.mMaskColor = maskColor;
+            showcaseView.mDismissOnTouch = dismissOnTouch;
+            showcaseView.mTargetPadding = targetPadding;
+            showcaseView.mShowDuration = showDuration;
+            showcaseView.mMissDuration = missDuration;
             return this;
         }
 
@@ -239,22 +262,27 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
 
     //----------------------------------------------------------------------------------------------
 
+
     /**
      * 显示ShowcaseView
      */
-    public ShowcaseView show() {
+    public void show() {
         mAnimationFactory.fadeInView(this, mShowDuration, new IAnimationFactory.AnimationStartListener() {
             @Override
             public void onAnimationStart() {
-                ((ViewGroup) mActivity.getWindow().getDecorView()).removeView(ShowcaseView.this);
-                ((ViewGroup) mActivity.getWindow().getDecorView()).addView(ShowcaseView.this);
-                setVisibility(VISIBLE);
-                if (mListener != null) {
-                    mListener.onShowcaseDisplayed(ShowcaseView.this);
-                }
+                mDecorView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mDecorView.removeView(ShowcaseView.this);
+                        mDecorView.addView(ShowcaseView.this);
+                        setVisibility(VISIBLE);
+                        if (mListener != null) {
+                            mListener.onDisplay(ShowcaseView.this);
+                        }
+                    }
+                });
             }
         });
-        return this;
     }
 
     /**
@@ -264,9 +292,13 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         mAnimationFactory.fadeOutView(this, mMissDuration, new IAnimationFactory.AnimationEndListener() {
             @Override
             public void onAnimationEnd() {
-                ((ViewGroup) mActivity.getWindow().getDecorView()).removeView(ShowcaseView.this);
+                mDecorView.removeView(ShowcaseView.this);
+                setVisibility(INVISIBLE);
                 if (mListener != null) {
-                    mListener.onShowcaseDismissed(ShowcaseView.this);
+                    mListener.onDismiss(ShowcaseView.this);
+                }
+                if (mQueueListener != null) {
+                    mQueueListener.onDismiss();
                 }
                 if (mBitmap != null) {
                     mBitmap.recycle();
@@ -277,6 +309,22 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
                 mPaint = null;
             }
         });
+    }
+
+    /**
+     * 添加到显示队列
+     */
+    public ShowcaseQueue addShowQueue() {
+        ShowcaseQueue showcaseQueue = ShowcaseQueue.getInstance();
+        showcaseQueue.add(this);
+        return showcaseQueue;
+    }
+
+    /**
+     * 依次展示队列里的showcaseView
+     */
+    public void showQueue() {
+        ShowcaseQueue.getInstance().showQueue();
     }
 
     /**
@@ -421,16 +469,30 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
     /**
      * 监听show和dismiss的事件
      */
-    public void setListener(ShowcaseListener listener) {
+    public void addShowcaseListener(ShowcaseListener listener) {
         mListener = listener;
     }
 
     private ShowcaseListener mListener;
 
     public interface ShowcaseListener {
-        void onShowcaseDisplayed(ShowcaseView showcaseView);
+        void onDisplay(ShowcaseView showcaseView);
 
-        void onShowcaseDismissed(ShowcaseView showcaseView);
+        void onDismiss(ShowcaseView showcaseView);
+    }
+
+    /**
+     * 不建议外部使用，只用于给ShowcaseQueue内部监听onDismiss。
+     */
+    @Deprecated
+    public void addQueueListener(QueueListener queueListener) {
+        mQueueListener = queueListener;
+    }
+
+    private QueueListener mQueueListener;
+
+    public interface QueueListener {
+        void onDismiss();
     }
 
 }
