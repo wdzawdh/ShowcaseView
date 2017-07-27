@@ -64,7 +64,7 @@ public class SecondActivity extends AppCompatActivity {
                 .setMaskColor("#D8BFD8")
                 .setDismissOnTouch(false)
                 .addTarget(mTextView3, ShowcaseView.RECTANGLE_SHAPE)
-                .addImage(R.mipmap.img_showcase, 5.0f, 7.5f, 1.5f, true)
+                .addImage(R.mipmap.img_showcase, 5.0f, 8.0f, 1.0f, true)
                 .addShowcaseListener(new ShowcaseView.ShowcaseListener() {
                     @Override
                     public void onDisplay(ShowcaseView showcaseView) {
