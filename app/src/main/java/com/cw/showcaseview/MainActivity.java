@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
     public void show() {
         new ShowcaseView.Builder(this)
                 .addTarget(mTextView)
-                .addImage(R.mipmap.img_showcase, 5.0f, 5.0f, 1.5f, true)
+                .addImage(R.mipmap.img_showcase, 5.0f, 5.0f, 1.0f, true)
                 .addShowcaseListener(new ShowcaseView.ShowcaseListener() {
                     @Override
                     public void onDisplay(ShowcaseView showcaseView) {

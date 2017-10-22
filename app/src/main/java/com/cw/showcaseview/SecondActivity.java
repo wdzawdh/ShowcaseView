@@ -38,12 +38,12 @@ public class SecondActivity extends AppCompatActivity {
                 .addShowcaseListener(new ShowcaseView.ShowcaseListener() {
                     @Override
                     public void onDisplay(ShowcaseView showcaseView) {
-                        Toast.makeText(getApplication(),"第一个展示啦",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplication(), "第一个展示啦", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onDismiss(ShowcaseView showcaseView) {
-                        Toast.makeText(getApplication(),"第一个消失啦",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplication(), "第一个消失啦", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addShowcaseQueue()
@@ -52,12 +52,12 @@ public class SecondActivity extends AppCompatActivity {
                 .addShowcaseListener(new ShowcaseView.ShowcaseListener() {
                     @Override
                     public void onDisplay(ShowcaseView showcaseView) {
-                        Toast.makeText(getApplication(),"第二个展示啦",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplication(), "第二个展示啦", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onDismiss(ShowcaseView showcaseView) {
-                        Toast.makeText(getApplication(),"第二个消失啦",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplication(), "第二个消失啦", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addShowcaseQueue()
@@ -68,12 +68,12 @@ public class SecondActivity extends AppCompatActivity {
                 .addShowcaseListener(new ShowcaseView.ShowcaseListener() {
                     @Override
                     public void onDisplay(ShowcaseView showcaseView) {
-                        Toast.makeText(getApplication(),"最后一个展示啦",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplication(), "最后一个展示啦", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onDismiss(ShowcaseView showcaseView) {
-                        Toast.makeText(getApplication(),"最后一个消失啦",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplication(), "最后一个消失啦", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addShowcaseQueue()

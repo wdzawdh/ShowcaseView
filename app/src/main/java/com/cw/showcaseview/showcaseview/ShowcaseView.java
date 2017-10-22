@@ -1,6 +1,8 @@
 package com.cw.showcaseview.showcaseview;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -11,8 +13,8 @@ import android.graphics.PorterDuffXfermode;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -20,7 +22,6 @@ import android.widget.AbsoluteLayout;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.cw.showcaseview.R;
 import com.cw.showcaseview.showcaseview.animation.AlphaAnimationFactory;
 import com.cw.showcaseview.showcaseview.animation.IAnimationFactory;
 import com.cw.showcaseview.showcaseview.queue.ShowcaseQueue;
@@ -40,15 +41,18 @@ import java.util.Map;
  */
 public class ShowcaseView extends FrameLayout implements View.OnClickListener {
 
+    public static final String PREFERENCE_NAME = ShowcaseView.class.getSimpleName();
+
     public static final int CIRCLE_SHAPE = 0;
     public static final int RECTANGLE_SHAPE = 1;
     public static final int OVAL_SHAPE = 2;
 
-    private String mMaskColor = "#99000000";//蒙版的背景颜色
+    private String mMaskColor = "#BB000000";//蒙版的背景颜色
     private boolean mDismissOnTouch;//是否触摸任意地方消失
     private int mTargetPadding;//透明块的内边距
     private long mShowDuration;//show的渐显时间
     private long mMissDuration;//miss的渐隐时间
+    private String mOnlyOneTag;//只展示一次的标示
 
     private Activity mActivity;
     private Bitmap mBitmap;
@@ -78,8 +82,8 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         setWillNotDraw(false);
         setOnClickListener(this);
         setVisibility(INVISIBLE);
-        View view = LayoutInflater.from(getContext()).inflate(R.layout.showcase_content, this, true);
-        mContentView = (AbsoluteLayout) view.findViewById(R.id.content_box);
+        mContentView = new AbsoluteLayout(act);
+        this.addView(mContentView);
         mDecorView = (ViewGroup) mActivity.getWindow().getDecorView();
     }
 
@@ -122,6 +126,10 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
             removeFromWindow();
         }
     }
+
+
+    //---------------------------------------Builder------------------------------------------------
+
 
     /**
      * Builder创建类,对showcaseView创建并进行一些配置
@@ -178,6 +186,14 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         }
 
         /**
+         * 设置只展示一次的标示
+         */
+        public Builder setOnlyOneTag(String tag) {
+            showcaseView.setOnlyOneTag(tag);
+            return this;
+        }
+
+        /**
          * 设置透明块的样式
          * <p>
          * 默认 CIRCLE_SHAPE 圆形
@@ -204,7 +220,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
          * @param resId   resId
          * @param xWeight x坐标-权重（总共10.0f，例如5.0f就在屏幕中间）
          * @param yWeight y坐标-权重（总共10.0f）
-         * @param scale   缩放比例
+         * @param scale   缩放比例  （1.0f时图片宽为屏幕的一半，高度等比例缩放）
          * @param miss    是否点击蒙版消失
          */
         public Builder addImage(int resId, float xWeight, float yWeight, float scale, boolean miss) {
@@ -260,7 +276,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
     }
 
 
-    //----------------------------------------------------------------------------------------------
+    //---------------------------------------Method-------------------------------------------------
 
 
     /**
@@ -273,6 +289,9 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
                 mDecorView.post(new Runnable() {
                     @Override
                     public void run() {
+                        if (getSPBoolean(getContext(), mOnlyOneTag, false)) {
+                            return;
+                        }
                         mDecorView.removeView(ShowcaseView.this);
                         mDecorView.addView(ShowcaseView.this);
                         setVisibility(VISIBLE);
@@ -307,6 +326,10 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
                 mTargets = null;
                 mCanvas = null;
                 mPaint = null;
+
+                if (!TextUtils.isEmpty(mOnlyOneTag)) {
+                    putSPBoolean(getContext(), mOnlyOneTag, true);
+                }
             }
         });
     }
@@ -374,6 +397,13 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
     }
 
     /**
+     * 设置只展示一次的标示
+     */
+    public void setOnlyOneTag(String tag) {
+        mOnlyOneTag = tag;
+    }
+
+    /**
      * 设置透明块的样式
      * <p>
      * 默认 CIRCLE_SHAPE 圆形
@@ -390,7 +420,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
      */
     public void addTarget(View view, int shapeMode) {
         if (view == null) {
-            throw new IllegalArgumentException("view == null");
+            return;
         }
         switch (shapeMode) {
             case CIRCLE_SHAPE:
@@ -414,7 +444,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
      * @param resId   resId
      * @param xWeight x坐标-权重（总共10.0f，例如5.0f就在屏幕中间）
      * @param yWeight y坐标-权重（总共10.0f）
-     * @param scale   缩放比例
+     * @param scale   缩放比例  （1.0f时图片宽为屏幕的一半，高度等比例缩放）
      * @param miss    是否点击蒙版消失
      */
     public void addImage(int resId, float xWeight, float yWeight, float scale, boolean miss) {
@@ -425,8 +455,11 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeResource(getResources(), resId, options);
         options.inJustDecodeBounds = false;
-        float width = options.outWidth * scale;
-        float height = options.outHeight * scale;
+        float proportion = (float) options.outHeight / options.outWidth;
+        WindowManager wm = mActivity.getWindowManager();
+        int windowWidth = wm.getDefaultDisplay().getWidth();
+        float width = windowWidth / 2 * scale;
+        float height = width * proportion * scale;
         addShowView(imageView, (int) width, (int) height, xWeight, yWeight);
     }
 
@@ -465,6 +498,22 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
             mContentView.addView(view, layoutParams);
         }
     }
+
+    private boolean putSPBoolean(Context context, String key, boolean value) {
+        SharedPreferences settings = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putBoolean(key, value);
+        return editor.commit();
+    }
+
+    private boolean getSPBoolean(Context context, String key, boolean defaultValue) {
+        SharedPreferences settings = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+        return settings.getBoolean(key, defaultValue);
+    }
+
+
+    //---------------------------------------Listener-----------------------------------------------
+
 
     /**
      * 监听show和dismiss的事件
