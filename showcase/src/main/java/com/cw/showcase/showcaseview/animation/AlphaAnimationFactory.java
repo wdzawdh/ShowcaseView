@@ -1,4 +1,4 @@
-package com.cw.showcaseview.showcaseview.animation;
+package com.cw.showcase.showcaseview.animation;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
