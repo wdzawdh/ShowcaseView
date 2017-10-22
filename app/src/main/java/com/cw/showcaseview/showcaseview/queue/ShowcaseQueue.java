@@ -1,7 +1,6 @@
-package com.cw.showcase.showcaseview.queue;
+package com.cw.showcaseview.showcaseview.queue;
 
-
-import com.cw.showcase.showcaseview.ShowcaseView;
+import com.cw.showcaseview.showcaseview.ShowcaseView;
 
 import java.util.LinkedList;
 

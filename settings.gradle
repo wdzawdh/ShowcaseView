@@ -1,1 +1,1 @@
-include ':app', ':showcase'
+include ':app'

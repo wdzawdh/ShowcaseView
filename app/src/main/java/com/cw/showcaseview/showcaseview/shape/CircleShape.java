@@ -1,10 +1,10 @@
-package com.cw.showcase.showcaseview.shape;
+package com.cw.showcaseview.showcaseview.shape;
 
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
-import com.cw.showcase.showcaseview.target.ViewTarget;
+import com.cw.showcaseview.showcaseview.target.ViewTarget;
 
 
 public class CircleShape implements IShape {

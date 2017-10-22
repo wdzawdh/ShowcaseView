@@ -1,4 +1,4 @@
-package com.cw.showcase.showcaseview;
+package com.cw.showcaseview.showcaseview;
 
 import android.app.Activity;
 import android.content.Context;
@@ -22,14 +22,14 @@ import android.widget.AbsoluteLayout;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.cw.showcase.showcaseview.animation.AlphaAnimationFactory;
-import com.cw.showcase.showcaseview.animation.IAnimationFactory;
-import com.cw.showcase.showcaseview.queue.ShowcaseQueue;
-import com.cw.showcase.showcaseview.shape.CircleShape;
-import com.cw.showcase.showcaseview.shape.IShape;
-import com.cw.showcase.showcaseview.shape.OvalShape;
-import com.cw.showcase.showcaseview.shape.RectangleShape;
-import com.cw.showcase.showcaseview.target.ViewTarget;
+import com.cw.showcaseview.showcaseview.animation.AlphaAnimationFactory;
+import com.cw.showcaseview.showcaseview.animation.IAnimationFactory;
+import com.cw.showcaseview.showcaseview.queue.ShowcaseQueue;
+import com.cw.showcaseview.showcaseview.shape.CircleShape;
+import com.cw.showcaseview.showcaseview.shape.IShape;
+import com.cw.showcaseview.showcaseview.shape.OvalShape;
+import com.cw.showcaseview.showcaseview.shape.RectangleShape;
+import com.cw.showcaseview.showcaseview.target.ViewTarget;
 
 import java.util.HashMap;
 import java.util.Map;
