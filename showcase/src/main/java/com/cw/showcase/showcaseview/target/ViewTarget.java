@@ -1,4 +1,4 @@
-package com.cw.showcaseview.showcaseview.target;
+package com.cw.showcase.showcaseview.target;
 
 import android.graphics.Point;
 import android.graphics.Rect;

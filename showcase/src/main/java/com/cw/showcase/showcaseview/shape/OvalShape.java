@@ -9,13 +9,14 @@
  *           modification:
  */
 
-package com.cw.showcaseview.showcaseview.shape;
+package com.cw.showcase.showcaseview.shape;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 
-import com.cw.showcaseview.showcaseview.target.ViewTarget;
+import com.cw.showcase.showcaseview.target.ViewTarget;
+
 
 /**
  * @author Cw

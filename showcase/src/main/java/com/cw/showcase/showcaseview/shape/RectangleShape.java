@@ -1,10 +1,10 @@
-package com.cw.showcaseview.showcaseview.shape;
+package com.cw.showcase.showcaseview.shape;
 
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
-import com.cw.showcaseview.showcaseview.target.ViewTarget;
+import com.cw.showcase.showcaseview.target.ViewTarget;
 
 
 public class RectangleShape implements IShape {
