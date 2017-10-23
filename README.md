@@ -2,9 +2,6 @@
 ## **每天都要过得开心 ( ゜- ゜)つロ乾杯 ！**
 
 
-----------
-
-
 ### **效果图**
 <img src="http://otjav6lvw.bkt.clouddn.com/17-7-29/92985778.jpg" width="300"/>
 <img src="http://otjav6lvw.bkt.clouddn.com/17-7-29/66349083.jpg" width="300"/>
