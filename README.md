@@ -3,8 +3,7 @@
 
 
 ----------
-## **Demo**
-> Demo地址 https://github.com/wdzawdh/ShowcaseView
+
 
 ### **效果图**
 <img src="http://otjav6lvw.bkt.clouddn.com/17-7-29/92985778.jpg" width="300"/>
@@ -27,7 +26,7 @@
 8.addShowcaseListener 监听显示和关闭的事件
 ```
 new ShowcaseView.Builder(this)
-		.setOnlyOneTag(MainActivity.class.getSimpleName())
+	.setOnlyOneTag(MainActivity.class.getSimpleName())
         .setMaskColor("#88EECC33")
         .setDismissOnTouch(true)
         .setDuration(1000L, 1000L)
