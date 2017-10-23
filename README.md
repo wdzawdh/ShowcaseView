@@ -38,7 +38,7 @@ dependencies {
 8.addShowcaseListener 监听显示和关闭的事件
 ```
 new ShowcaseView.Builder(this)
-		.setOnlyOneTag(MainActivity.class.getSimpleName())
+	.setOnlyOneTag(MainActivity.class.getSimpleName())
         .setMaskColor("#88EECC33")
         .setDismissOnTouch(true)
         .setDuration(1000L, 1000L)
