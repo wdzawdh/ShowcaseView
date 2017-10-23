@@ -1,4 +1,4 @@
-####  **Android蒙板控件**
+##  **Android蒙板控件（用户引导）**
 
 ### **效果图**
 <img src="http://otjav6lvw.bkt.clouddn.com/17-7-29/92985778.jpg" width="300"/>
