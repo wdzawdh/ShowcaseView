@@ -1,6 +1,4 @@
-####  **这是一个蒙版控件，其实以前也遇到过蒙版的需求，但是都是简单实现一下，效果看起来不好，代码可扩展性也不高。这次重新写了一版，自我感觉封装的还是不错，依旧还是希望能帮助到遇到类似需求的小伙伴们，如果觉得有不好的地方或者有没想到的地方也可以给我评论，我会认真采纳的。**
-## **每天都要过得开心 ( ゜- ゜)つロ乾杯 ！**
-
+####  **Android蒙板控件**
 
 ### **效果图**
 <img src="http://otjav6lvw.bkt.clouddn.com/17-7-29/92985778.jpg" width="300"/>
@@ -8,11 +6,28 @@
 <img src="http://otjav6lvw.bkt.clouddn.com/17-7-29/75740996.jpg" width="300"/>
 <img src="http://otjav6lvw.bkt.clouddn.com/17-7-29/3381654.jpg" width="300"/>
 
+### **添加依赖**
+root build.gradle
+```
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+app build.gradle
+```
+dependencies {
+    compile 'com.github.wdzawdh:ShowcaseView:v1.0'
+}
+```
+
 ### **使用方法**
 ### **栗子一**
-> 最简单的使用方式 `(图1)`  </br>
+> 最简单的使用方式 `(图1)`  </br> 
 
->方法解释：
+>方法解释：(set系列的方法都会有默认值)
 1.setOnlyOneTag 用来标识只显示一次
 2.setMaskColor  遮罩的颜色
 3.setDismissOnTouch 是否触摸任意地方消失
@@ -23,7 +38,7 @@
 8.addShowcaseListener 监听显示和关闭的事件
 ```
 new ShowcaseView.Builder(this)
-	.setOnlyOneTag(MainActivity.class.getSimpleName())
+		.setOnlyOneTag(MainActivity.class.getSimpleName())
         .setMaskColor("#88EECC33")
         .setDismissOnTouch(true)
         .setDuration(1000L, 1000L)
@@ -50,7 +65,7 @@ new ShowcaseView.Builder(this)
 > 特别注意：set系列的属性会在第一个addShowcaseQueue调用后保留下来，直到调用build为止，比如遮罩颜色等。
 ```
 new ShowcaseView.Builder(this)
-		.setOnlyOneTag(MainActivity.class.getSimpleName())
+	.setOnlyOneTag(MainActivity.class.getSimpleName())
         .setMaskColor("#88EECC33")
         .setDismissOnTouch(true)
         .setDuration(1000L, 1000L)
