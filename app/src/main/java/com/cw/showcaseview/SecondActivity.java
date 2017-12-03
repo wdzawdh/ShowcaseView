@@ -18,6 +18,7 @@ public class SecondActivity extends AppCompatActivity {
     private View mTextView;
     private View mTextView2;
     private View mTextView3;
+    private View mImageView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -26,6 +27,7 @@ public class SecondActivity extends AppCompatActivity {
         mTextView = findViewById(R.id.tv_text);
         mTextView2 = findViewById(R.id.tv_text2);
         mTextView3 = findViewById(R.id.tv_text3);
+        mImageView = findViewById(R.id.iv_img1);
         show();
     }
 
@@ -33,7 +35,7 @@ public class SecondActivity extends AppCompatActivity {
         new ShowcaseView.Builder(this)
                 .setMaskColor("#88EECC33")
                 .setDismissOnTouch(true)
-                .setDuration(1000L, 1000L)
+                .setDuration(300L, 300L)
                 .setTargetPadding(20)
                 .addTarget(mTextView, ShowcaseView.CIRCLE_SHAPE)
                 .addShowcaseListener(new ShowcaseView.ShowcaseListener() {
@@ -63,7 +65,6 @@ public class SecondActivity extends AppCompatActivity {
                 })
                 .addShowcaseQueue()
                 .setMaskColor("#D8BFD8")
-                .setDismissOnTouch(false)
                 .addTarget(mTextView3, ShowcaseView.RECTANGLE_SHAPE)
                 .addImage(R.mipmap.img_showcase, 5.0f, 8.0f, 1.0f, true)
                 .addShowcaseListener(new ShowcaseView.ShowcaseListener() {
@@ -77,6 +78,9 @@ public class SecondActivity extends AppCompatActivity {
                         Toast.makeText(getApplication(), "最后一个消失啦", Toast.LENGTH_SHORT).show();
                     }
                 })
+                .addShowcaseQueue()
+                //浮动下层View
+                .addFloatView(mImageView)
                 .addShowcaseQueue()
                 .build().showQueue();
     }

@@ -8,8 +8,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -61,6 +63,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
     private ViewGroup mDecorView;
     private AbsoluteLayout mContentView;
     private Map<ViewTarget, IShape> mTargets = new HashMap<>();
+    private Map<ViewGroup, ViewTarget> mOriginals = new HashMap<>();
     private AlphaAnimationFactory mAnimationFactory = new AlphaAnimationFactory();
 
     public ShowcaseView(@NonNull Activity act) {
@@ -220,7 +223,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
          * @param resId   resId
          * @param xWeight x坐标-权重（总共10.0f，例如5.0f就在屏幕中间）
          * @param yWeight y坐标-权重（总共10.0f）
-         * @param scale   缩放比例  （1.0f时图片宽为屏幕的一半，高度等比例缩放）
+         * @param scale   缩放比例
          * @param miss    是否点击蒙版消失
          */
         public Builder addImage(int resId, float xWeight, float yWeight, float scale, boolean miss) {
@@ -243,6 +246,16 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         }
 
         /**
+         * 将下层View浮动到蒙层上来
+         *
+         * @param view view
+         */
+        public Builder addFloatView(View view) {
+            showcaseView.addFloatView(view);
+            return this;
+        }
+
+        /**
          * 监听show和dismiss的事件
          */
         public Builder addShowcaseListener(ShowcaseListener listener) {
@@ -260,6 +273,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
             int targetPadding = showcaseView.mTargetPadding;
             long showDuration = showcaseView.mShowDuration;
             long missDuration = showcaseView.mMissDuration;
+            String onlyOneTag = showcaseView.mOnlyOneTag;
             //重建ShowcaseView，保留set系列的属性
             showcaseView = new ShowcaseView(showcaseView.mActivity);
             showcaseView.mMaskColor = maskColor;
@@ -267,6 +281,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
             showcaseView.mTargetPadding = targetPadding;
             showcaseView.mShowDuration = showDuration;
             showcaseView.mMissDuration = missDuration;
+            showcaseView.mOnlyOneTag = onlyOneTag;
             return this;
         }
 
@@ -283,18 +298,27 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
      * 显示ShowcaseView
      */
     public void show() {
+        if (hasTag()) {
+            return;
+        }
         mAnimationFactory.fadeInView(this, mShowDuration, new IAnimationFactory.AnimationStartListener() {
             @Override
             public void onAnimationStart() {
                 mDecorView.post(new Runnable() {
                     @Override
                     public void run() {
-                        if (getSPBoolean(getContext(), mOnlyOneTag, false)) {
-                            return;
-                        }
                         mDecorView.removeView(ShowcaseView.this);
                         mDecorView.addView(ShowcaseView.this);
                         setVisibility(VISIBLE);
+                        //浮动View
+                        for (Map.Entry<ViewGroup, ViewTarget> entry : mOriginals.entrySet()) {
+                            ViewGroup parent = entry.getKey();
+                            ViewTarget viewTarget = entry.getValue();
+                            Rect bounds = viewTarget.getBounds();
+                            Point point = viewTarget.getPoint();
+                            parent.removeView(viewTarget.getView());
+                            addShowView(viewTarget.getView(), bounds.width(), bounds.height(), point.x, point.y);
+                        }
                         if (mListener != null) {
                             mListener.onDisplay(ShowcaseView.this);
                         }
@@ -309,10 +333,17 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
      */
     public void removeFromWindow() {
         mAnimationFactory.fadeOutView(this, mMissDuration, new IAnimationFactory.AnimationEndListener() {
+
             @Override
             public void onAnimationEnd() {
+                mContentView.removeAllViews();
                 mDecorView.removeView(ShowcaseView.this);
                 setVisibility(INVISIBLE);
+                //将浮动的View还给原始父布局
+                for (Map.Entry<ViewGroup, ViewTarget> entry : mOriginals.entrySet()) {
+                    ViewTarget viewTarget = entry.getValue();
+                    entry.getKey().addView(viewTarget.getView(), viewTarget.getOriginalLayoutParams());
+                }
                 if (mListener != null) {
                     mListener.onDismiss(ShowcaseView.this);
                 }
@@ -328,7 +359,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
                 mPaint = null;
 
                 if (!TextUtils.isEmpty(mOnlyOneTag)) {
-                    putSPBoolean(getContext(), mOnlyOneTag, true);
+                    putTag();
                 }
             }
         });
@@ -419,7 +450,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
      * @param shapeMode CIRCLE_SHAPE 圆形 RECTANGLE_SHAPE 矩形 OVAL_SHAPE 椭圆
      */
     public void addTarget(View view, int shapeMode) {
-        if (view == null) {
+        if (view == null || hasTag()) {
             return;
         }
         switch (shapeMode) {
@@ -482,6 +513,20 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
     }
 
     /**
+     * 将下层View浮动上来
+     *
+     * @param view view
+     */
+    public void addFloatView(final View view) {
+        if (view == null || view.getParent() == null || hasTag()) {
+            return;
+        }
+        ViewTarget viewTarget = new ViewTarget(view);
+        ViewGroup parent = (ViewGroup) view.getParent();
+        mOriginals.put(parent, viewTarget);
+    }
+
+    /**
      * 增加展示的View（不建议使用，px不利于屏幕适配）
      *
      * @param view   view
@@ -492,23 +537,24 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
      */
     @Deprecated
     public void addShowView(View view, int width, int height, int x, int y) {
-        if (view != null) {
-            AbsoluteLayout.LayoutParams layoutParams = new AbsoluteLayout.LayoutParams(
-                    width, height, x - width / 2, y - height / 2);
-            mContentView.addView(view, layoutParams);
+        if (view == null || hasTag()) {
+            return;
         }
+        AbsoluteLayout.LayoutParams layoutParams = new AbsoluteLayout.LayoutParams(
+                width, height, x - width / 2, y - height / 2);
+        mContentView.addView(view, layoutParams);
     }
 
-    private boolean putSPBoolean(Context context, String key, boolean value) {
-        SharedPreferences settings = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+    private boolean putTag() {
+        SharedPreferences settings = getContext().getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(key, value);
+        editor.putBoolean(mOnlyOneTag, true);
         return editor.commit();
     }
 
-    private boolean getSPBoolean(Context context, String key, boolean defaultValue) {
-        SharedPreferences settings = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-        return settings.getBoolean(key, defaultValue);
+    private boolean hasTag() {
+        SharedPreferences settings = getContext().getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+        return settings.getBoolean(mOnlyOneTag, false);
     }
 
 

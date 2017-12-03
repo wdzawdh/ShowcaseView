@@ -3,14 +3,25 @@ package com.cw.showcase.showcaseview.target;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.view.View;
+import android.view.ViewGroup;
 
 
 public class ViewTarget {
 
     private View mView;
+    private ViewGroup.LayoutParams mOriginalLayoutParams;
 
     public ViewTarget(View view) {
         mView = view;
+        mOriginalLayoutParams = view.getLayoutParams();
+    }
+
+    public View getView() {
+        return mView;
+    }
+
+    public ViewGroup.LayoutParams getOriginalLayoutParams() {
+        return mOriginalLayoutParams;
     }
 
     public Point getPoint() {
