@@ -308,8 +308,6 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
                     @Override
                     public void run() {
                         mDecorView.removeView(ShowcaseView.this);
-                        mDecorView.addView(ShowcaseView.this);
-                        setVisibility(VISIBLE);
                         //浮动View
                         for (Map.Entry<ViewGroup, ViewTarget> entry : mOriginals.entrySet()) {
                             ViewGroup parent = entry.getKey();
@@ -319,6 +317,8 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
                             parent.removeView(viewTarget.getView());
                             addShowView(viewTarget.getView(), bounds.width(), bounds.height(), point.x, point.y);
                         }
+                        mDecorView.addView(ShowcaseView.this);
+                        setVisibility(VISIBLE);
                         if (mListener != null) {
                             mListener.onDisplay(ShowcaseView.this);
                         }
