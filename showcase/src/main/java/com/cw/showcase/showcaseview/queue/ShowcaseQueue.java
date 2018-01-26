@@ -33,6 +33,10 @@ public class ShowcaseQueue {
         return mList.add(showcaseView);
     }
 
+    public int getSize() {
+        return mList.size();
+    }
+
     public synchronized void showQueue() {
         if (mList.size() == 0) {
             return;

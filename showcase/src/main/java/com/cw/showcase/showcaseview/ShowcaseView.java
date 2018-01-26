@@ -15,11 +15,12 @@ import android.graphics.Rect;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.Animation;
 import android.widget.AbsoluteLayout;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -49,11 +50,14 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
     public static final int RECTANGLE_SHAPE = 1;
     public static final int OVAL_SHAPE = 2;
 
+    public static int sShowIndex = 0;//展示的个数
+
     private String mMaskColor = "#BB000000";//蒙版的背景颜色
     private boolean mDismissOnTouch;//是否触摸任意地方消失
     private int mTargetPadding;//透明块的内边距
-    private long mShowDuration;//show的渐显时间
-    private long mMissDuration;//miss的渐隐时间
+    private long mShowDuration = -1;//show的渐显时间
+    private long mMissDuration = -1;//miss的渐隐时间
+    private long mDismissDuration;//设置自动消失时间
     private String mOnlyOneTag;//只展示一次的标示
 
     private Activity mActivity;
@@ -84,7 +88,6 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         //ViewGroup重写onDraw，需要调用setWillNotDraw(false)
         setWillNotDraw(false);
         setOnClickListener(this);
-        setVisibility(INVISIBLE);
         mContentView = new AbsoluteLayout(act);
         this.addView(mContentView);
         mDecorView = (ViewGroup) mActivity.getWindow().getDecorView();
@@ -156,11 +159,21 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         /**
          * 设置渐显时间
          *
-         * @param showDur show的渐显时间
+         * @param showDur show的渐显时间 (-1 没有动画)
          * @param missDur miss的渐隐时间
          */
         public Builder setDuration(long showDur, long missDur) {
             showcaseView.setDuration(showDur, missDur);
+            return this;
+        }
+
+        /**
+         * 设置自动消失时间
+         *
+         * @param missDur 自动消失时间时间
+         */
+        public Builder setDismissDuration(long missDur) {
+            showcaseView.setDismissDuration(missDur);
             return this;
         }
 
@@ -232,6 +245,21 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         }
 
         /**
+         * 增加展示的图片
+         *
+         * @param resId     resId
+         * @param xWeight   x坐标-权重（总共10.0f，例如5.0f就在屏幕中间）
+         * @param yWeight   y坐标-权重（总共10.0f）
+         * @param scale     缩放比例
+         * @param miss      是否点击蒙版消失
+         * @param animation 动画
+         */
+        public Builder addImage(int resId, float xWeight, float yWeight, float scale, boolean miss, Animation animation) {
+            showcaseView.addImage(resId, xWeight, yWeight, scale, miss, animation);
+            return this;
+        }
+
+        /**
          * 增加展示的View
          *
          * @param view    view
@@ -267,12 +295,15 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
          * 添加到展示队列
          */
         public Builder addShowcaseQueue() {
-            showcaseView.addShowQueue();
+            if (!showcaseView.hasTag()) {
+                showcaseView.addShowQueue();
+            }
             String maskColor = showcaseView.mMaskColor;
             boolean dismissOnTouch = showcaseView.mDismissOnTouch;
             int targetPadding = showcaseView.mTargetPadding;
             long showDuration = showcaseView.mShowDuration;
             long missDuration = showcaseView.mMissDuration;
+            long dismissDuration = showcaseView.mDismissDuration;
             String onlyOneTag = showcaseView.mOnlyOneTag;
             //重建ShowcaseView，保留set系列的属性
             showcaseView = new ShowcaseView(showcaseView.mActivity);
@@ -281,6 +312,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
             showcaseView.mTargetPadding = targetPadding;
             showcaseView.mShowDuration = showDuration;
             showcaseView.mMissDuration = missDuration;
+            showcaseView.mDismissDuration = dismissDuration;
             showcaseView.mOnlyOneTag = onlyOneTag;
             return this;
         }
@@ -293,6 +325,15 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
 
     //---------------------------------------Method-------------------------------------------------
 
+
+    public static boolean hasShow() {
+        return sShowIndex != 0;
+    }
+
+    public static boolean hasTag(Context context, String tag) {
+        SharedPreferences settings = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+        return settings.getBoolean(tag, false);
+    }
 
     /**
      * 显示ShowcaseView
@@ -307,7 +348,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
                 mDecorView.post(new Runnable() {
                     @Override
                     public void run() {
-                        mDecorView.removeView(ShowcaseView.this);
+                        sShowIndex++;
                         //浮动View
                         for (Map.Entry<ViewGroup, ViewTarget> entry : mOriginals.entrySet()) {
                             ViewGroup parent = entry.getKey();
@@ -318,9 +359,17 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
                             addShowView(viewTarget.getView(), bounds.width(), bounds.height(), point.x, point.y);
                         }
                         mDecorView.addView(ShowcaseView.this);
-                        setVisibility(VISIBLE);
                         if (mListener != null) {
                             mListener.onDisplay(ShowcaseView.this);
+                        }
+                        //自动消失
+                        if (mDismissDuration > 0) {
+                            postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    removeFromWindow();
+                                }
+                            }, mDismissDuration);
                         }
                     }
                 });
@@ -336,30 +385,38 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
 
             @Override
             public void onAnimationEnd() {
-                mContentView.removeAllViews();
-                mDecorView.removeView(ShowcaseView.this);
-                setVisibility(INVISIBLE);
-                //将浮动的View还给原始父布局
-                for (Map.Entry<ViewGroup, ViewTarget> entry : mOriginals.entrySet()) {
-                    ViewTarget viewTarget = entry.getValue();
-                    entry.getKey().addView(viewTarget.getView(), viewTarget.getOriginalLayoutParams());
+                sShowIndex--;
+                //队列为空时putTag(要在QueueListener前调用)
+                if (ShowcaseQueue.getInstance().getSize() == 0) {
+                    putTag();
                 }
+
+                mDecorView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mContentView.removeAllViews();
+                        //移除ShowcaseView
+                        mDecorView.removeView(ShowcaseView.this);
+                        //将浮动的View还给原始父布局
+                        for (Map.Entry<ViewGroup, ViewTarget> entry : mOriginals.entrySet()) {
+                            ViewTarget viewTarget = entry.getValue();
+                            entry.getKey().addView(viewTarget.getView(), viewTarget.getOriginalIndex(), viewTarget.getOriginalLayoutParams());
+                        }
+                        if (mBitmap != null) {
+                            mBitmap.recycle();
+                            mBitmap = null;
+                        }
+                        mTargets = null;
+                        mCanvas = null;
+                        mPaint = null;
+                    }
+                });
+
                 if (mListener != null) {
                     mListener.onDismiss(ShowcaseView.this);
                 }
                 if (mQueueListener != null) {
                     mQueueListener.onDismiss();
-                }
-                if (mBitmap != null) {
-                    mBitmap.recycle();
-                    mBitmap = null;
-                }
-                mTargets = null;
-                mCanvas = null;
-                mPaint = null;
-
-                if (!TextUtils.isEmpty(mOnlyOneTag)) {
-                    putTag();
                 }
             }
         });
@@ -391,12 +448,21 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
     /**
      * 设置渐显时间
      *
-     * @param showDur show的渐显时间
+     * @param showDur show的渐显时间 (-1 没有动画)
      * @param missDur miss的渐隐时间
      */
     public void setDuration(long showDur, long missDur) {
         mShowDuration = showDur;
         mMissDuration = missDur;
+    }
+
+    /**
+     * 设置自动消失时间
+     *
+     * @param missDur 自动消失时间时间
+     */
+    public void setDismissDuration(long missDur) {
+        mDismissDuration = missDur;
     }
 
     /**
@@ -418,11 +484,21 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
     /**
      * 设置点击蒙版消失的View
      */
-    public void setDismissView(View view) {
-        view.setOnClickListener(new OnClickListener() {
+    public void setDismissView(final View view) {
+        view.setOnTouchListener(new OnTouchListener() {
             @Override
-            public void onClick(View v) {
-                removeFromWindow();
+            public boolean onTouch(View v, MotionEvent event) {
+                if (ShowcaseView.this.getVisibility() == View.VISIBLE && event.getAction() == MotionEvent.ACTION_DOWN) {
+                    postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            //延迟500ms保证View的onClick先执行
+                            removeFromWindow();
+                            view.setOnTouchListener(null);
+                        }
+                    }, 500);
+                }
+                return false;
             }
         });
     }
@@ -479,6 +555,20 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
      * @param miss    是否点击蒙版消失
      */
     public void addImage(int resId, float xWeight, float yWeight, float scale, boolean miss) {
+        addImage(resId, xWeight, yWeight, scale, miss, null);
+    }
+
+    /**
+     * 增加展示的图片
+     *
+     * @param resId     resId
+     * @param xWeight   x坐标-权重（总共10.0f，例如5.0f就在屏幕中间）
+     * @param yWeight   y坐标-权重（总共10.0f）
+     * @param scale     缩放比例  （1.0f时图片宽为屏幕的一半，高度等比例缩放）
+     * @param miss      是否点击蒙版消失
+     * @param animation 动画
+     */
+    public void addImage(int resId, float xWeight, float yWeight, float scale, boolean miss, Animation animation) {
         ImageView imageView = new ImageView(mActivity.getApplicationContext());
         imageView.setImageResource(resId);
         if (miss) setDismissView(imageView);
@@ -492,6 +582,7 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         float width = windowWidth / 2 * scale;
         float height = width * proportion * scale;
         addShowView(imageView, (int) width, (int) height, xWeight, yWeight);
+        if (animation != null) imageView.startAnimation(animation);
     }
 
     /**
@@ -521,8 +612,9 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         if (view == null || view.getParent() == null || hasTag()) {
             return;
         }
-        ViewTarget viewTarget = new ViewTarget(view);
         ViewGroup parent = (ViewGroup) view.getParent();
+        int indexOfChild = parent.indexOfChild(view);
+        ViewTarget viewTarget = new ViewTarget(view, indexOfChild);
         mOriginals.put(parent, viewTarget);
     }
 
@@ -545,16 +637,22 @@ public class ShowcaseView extends FrameLayout implements View.OnClickListener {
         mContentView.addView(view, layoutParams);
     }
 
+    private boolean hasTag() {
+        if (mOnlyOneTag == null) {
+            return false;
+        }
+        SharedPreferences settings = getContext().getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+        return settings.getBoolean(mOnlyOneTag, false);
+    }
+
     private boolean putTag() {
+        if (mOnlyOneTag == null) {
+            return false;
+        }
         SharedPreferences settings = getContext().getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
         editor.putBoolean(mOnlyOneTag, true);
         return editor.commit();
-    }
-
-    private boolean hasTag() {
-        SharedPreferences settings = getContext().getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-        return settings.getBoolean(mOnlyOneTag, false);
     }
 
 
