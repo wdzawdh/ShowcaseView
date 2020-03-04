@@ -1,10 +1,12 @@
 ##  **Android蒙板控件（用户引导）**
 
 ### **效果图**
-<img src="http://otjav6lvw.bkt.clouddn.com/17-7-29/92985778.jpg" width="300"/>
-<img src="http://otjav6lvw.bkt.clouddn.com/17-7-29/66349083.jpg" width="300"/>
-<img src="http://otjav6lvw.bkt.clouddn.com/17-7-29/75740996.jpg" width="300"/>
-<img src="http://otjav6lvw.bkt.clouddn.com/17-7-29/3381654.jpg" width="300"/>
+
+<img src="https://raw.githubusercontent.com/wdzawdh/ShowcaseView/master/image/image1.jpg" width="200"/>
+<img src="https://raw.githubusercontent.com/wdzawdh/ShowcaseView/master/image/image2.jpg" width="200"/>
+<img src="https://raw.githubusercontent.com/wdzawdh/ShowcaseView/master/image/image3.jpg" width="200"/>
+<img src="https://raw.githubusercontent.com/wdzawdh/ShowcaseView/master/image/image4.jpg" width="200"/>
+<img src="https://raw.githubusercontent.com/wdzawdh/ShowcaseView/master/image/image5.jpg" width="200"/>
 
 ### **添加依赖**
 root build.gradle
